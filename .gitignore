@@ -1,0 +1,14 @@
+.DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+.pytest_cache/
+
+# Копия документов до концепции — в репозиторий не идёт
+_backup-*/
+
+# Артефакты — работа проходящего курс. В репозиторий идёт только пустая папка.
+*/*/artifacts/*
+!*/*/artifacts/.gitkeep

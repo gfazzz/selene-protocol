@@ -1,0 +1,23 @@
+[project]
+name = "selene-protocol"
+version = "0.1.0"
+description = "Курс по Python через тихую революцию на Луне"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+
+# Основа: только инструмент проверки. Группы сезонов добавляются вместе с сезонами
+# (SPEC.md §2).
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = []
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib -p no:cacheprovider"
+pythonpath = ["tools"]
+python_files = ["test_*.py"]
