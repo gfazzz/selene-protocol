@@ -24,6 +24,7 @@ SECTIONS = (
     r"Разбор типичных ошибок", r"Debriefing", r"Ссылки и AI-usage", r"Навигация",
 )
 # Имя проверки может содержать пробелы (параметры), поэтому берём его до « - ».
+REQUIRED = ("README.md", "theory.md", "mission.md", "Makefile", "solution", "tests")
 RESULT = re.compile(r"^(PASSED|FAILED|ERROR) (.+?)(?: - .*)?$", re.M)
 
 
@@ -90,6 +91,11 @@ def main():
     failed = 0
     for series in series_dirs:
         series_id = series.name[:6]
+        missing = [name for name in REQUIRED if not (series / name).exists()]
+        if missing:
+            print(f"{series_id}: ЕСТЬ ОШИБКИ\n  нет файлов: {', '.join(missing)}")
+            failed += 1
+            continue
         errors, count = check_tests(series)
         errors += check_docs(series, route[series_id])
         print(f"{series_id}: {'проверок ' + str(count) if not errors else 'ЕСТЬ ОШИБКИ'}")

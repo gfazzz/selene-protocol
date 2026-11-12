@@ -1,5 +1,5 @@
 # SELENE PROTOCOL — единый раннер
-# make setup | test [SEASON=01] [SERIES=s01e01] | links | route | series | check
+# make setup | test [SEASON=01] [SERIES=s01e01] | project | links | route | series | check
 
 SHELL := /bin/bash
 PYTHON := $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
@@ -12,13 +12,14 @@ else
 TARGETS := $(wildcard season-*/s*/tests)
 endif
 
-.PHONY: help setup test links route series check
+.PHONY: help setup test project links route series check
 
 help:
 	@echo "make setup                окружение .venv и pytest"
 	@echo "make test                 все серии"
 	@echo "make test SEASON=01       один сезон"
 	@echo "make test SERIES=s01e01   одна серия"
+	@echo "make project [SEASON=01] сквозной проект сезона из твоих артефактов"
 	@echo "make links                битые ссылки между документами"
 	@echo "make route                маршрут: 120 серий, оси, зависимости"
 	@echo "make series               стандарт серий: эталон, каркас, неверные решения"
@@ -31,6 +32,9 @@ setup:
 test:
 	@$(PYTHON) -m pytest $(if $(TARGETS),$(TARGETS),$(error Серии не найдены)) -q
 
+project:
+	@SEASON=$(SEASON) $(PYTHON) tools/build_project.py
+
 links:
 	@$(PYTHON) tools/check_links.py
 
@@ -40,4 +44,4 @@ route:
 series:
 	@$(PYTHON) tools/check_series.py
 
-check: links route series
+check: links route series project
