@@ -21,7 +21,7 @@ help:
 	@echo "make test SERIES=s01e01   одна серия"
 	@echo "make project [SEASON=01] сквозной проект сезона из твоих артефактов"
 	@echo "make links                битые ссылки между документами"
-	@echo "make route                маршрут: 120 серий, оси, зависимости"
+	@echo "make route                маршрут: 174 серии, оси, зависимости"
 	@echo "make series               стандарт серий: эталон, каркас, неверные решения"
 	@echo "make check                всё вместе, как перед публикацией"
 

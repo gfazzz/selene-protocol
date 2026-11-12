@@ -1,8 +1,8 @@
 """Season 1 — приёмка сквозного проекта `toolkit`.
 
-`make project SEASON=01` собирает пакет из твоих артефактов всех восьми серий
+`make project SEASON=01` собирает пакет из твоих артефактов всех двенадцати серий
 (нет артефакта — берётся эталон) и прогоняет здесь проверку на журнале смены из
-s01e08. Каждая серия проверила свой модуль отдельно. Здесь проверяется, что они
+s01e11. Каждая серия проверила свой модуль отдельно. Здесь проверяется, что они
 работают вместе: что приняла одна функция, то сходится с тем, что посчитала
 другая.
 """
@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 
 SEASON = Path(__file__).resolve().parents[2]
-LOG = SEASON / "s01e08-answer-in-the-log" / "data" / "shift_sol038.log"
+LOG = SEASON / "s01e11-answer-in-the-log" / "data" / "shift_sol038.log"
 REGISTRY = set()
 for number in range(1, 3001):
     REGISTRY.add(str(number).zfill(4))
@@ -34,8 +34,9 @@ def root():
 def tk(root):
     sys.path.insert(0, str(root))
     import toolkit
-    from toolkit import errors, logfile
+    from toolkit import cli, errors, logfile
 
+    toolkit.cli = cli
     toolkit.errors = errors
     toolkit.logfile = logfile
     return toolkit
@@ -57,15 +58,15 @@ def test_импорт_пакета_молчит_и_не_оставляет_фа�
     )
     assert done.returncode == 0, done.stderr
     assert done.stdout == "" and list(tmp_path.iterdir()) == [], (
-        "Импорт toolkit печатает или создаёт файлы (s01e06)."
+        "Импорт toolkit печатает или создаёт файлы (s01e09)."
     )
 
 
 def test_ни_одна_строка_журнала_не_потерялась(shift):
     lines, packets, accepted, rejected = shift
-    assert packets, "В журнале не нашлось пакетов: проверь read_log (s01e08)."
+    assert packets, "В журнале не нашлось пакетов: проверь read_log (s01e11)."
     assert len(accepted) + len(rejected) == len(packets), (
-        "Принято + отклонено должно равняться числу пакетов (s01e07)."
+        "Принято + отклонено должно равняться числу пакетов (s01e10)."
     )
 
 
@@ -73,7 +74,7 @@ def test_сводка_по_узлам_сходится_с_принятыми(tk,
     accepted = shift[2]
     counts = tk.count_by_node(accepted)
     assert sum(counts.values()) == len(accepted), (
-        "Сумма счётчиков по узлам не равна числу принятых пакетов (s01e04)."
+        "Сумма счётчиков по узлам не равна числу принятых пакетов (s01e06)."
     )
 
 
@@ -90,13 +91,13 @@ def test_тревоги_сходятся_между_модулями(tk, shift):
     alerts = tk.collect_alerts(accepted, LOW, HIGH)
     counts = tk.count_alerts(accepted, LOW, HIGH)
     assert sum(counts.values()) == len(alerts), (
-        "Тревог в списке и в счётчике по узлам разное количество (s01e05)."
+        "Тревог в списке и в счётчике по узлам разное количество (s01e08)."
     )
     values = [reading[2] for reading in accepted]
     breaches = tk.count_out_of_range(values, LOW, HIGH)
     first = tk.first_out_of_range(values, LOW, HIGH)
     assert (first is None) == (breaches == 0), (
-        "first_out_of_range и count_out_of_range противоречат друг другу (s01e02)."
+        "first_out_of_range и count_out_of_range противоречат друг другу (s01e03)."
     )
 
 
@@ -105,7 +106,7 @@ def test_повторный_вызов_даёт_то_же(tk, shift):
     first = tk.collect_alerts(accepted, LOW, HIGH)
     second = tk.collect_alerts(accepted, LOW, HIGH)
     assert first == second and first is not second, (
-        "Второй вызов collect_alerts отличается от первого: состояние течёт (s01e05)."
+        "Второй вызов collect_alerts отличается от первого: состояние течёт (s01e08)."
     )
 
 
@@ -116,7 +117,7 @@ def test_ответы_selene_находятся_и_повторяются(tk, sh
     for reading in accepted:
         if reading[0] == "0000":
             from_0000 += 1
-    assert answers, "В журнале смены есть ответы SELENE, а найдено ни одного (s01e08)."
+    assert answers, "В журнале смены есть ответы SELENE, а найдено ни одного (s01e11)."
     assert len(answers) <= from_0000
     assert tk.logfile.selene_answers(LOG) == answers
 
@@ -131,4 +132,35 @@ def test_сводка_из_командной_строки(root, tmp_path, shift
     )
     assert done.returncode == 0 and done.stdout.strip(), (
         f"python -m toolkit завершился с кодом {done.returncode}: {done.stderr}"
+    )
+
+
+def test_подписи_и_худшие_сходятся_с_потоком(tk, shift):
+    accepted = shift[2]
+    pressure = [reading for reading in accepted if reading[1] == "P"]
+    worst = tk.worst(pressure, 5)
+    assert len(worst) == min(5, len(pressure)), "worst вернула не столько пакетов (s01e04)."
+    if worst:
+        biggest = tk.extremes(pressure)[1]
+        assert biggest[2] == worst[0][2], "extremes и worst не согласны о наибольшем (s01e04)."
+    for reading in worst:
+        label = tk.format_reading(reading[0], reading[1], reading[2], reading[3])
+        assert reading[0] in label and f"{reading[2]:.2f}" in label, (
+            f"Подпись {label!r} не содержит узла или значения (s01e02)."
+        )
+
+
+def test_командная_строка_находит_те_же_ответы(tk, capsys):
+    code = tk.cli.main(["answers", str(LOG)])
+    out = capsys.readouterr().out
+    assert code == 0, f"toolkit.cli answers вернул код {code} (s01e12)."
+    for note, answer in tk.logfile.selene_answers(LOG):
+        assert answer in out, f"Ответ {answer!r} не попал в вывод toolkit.cli answers (s01e12)."
+
+
+def test_командная_строка_сообщает_об_ошибке_кодом(tk, tmp_path, capsys):
+    code = tk.cli.main(["summary", str(tmp_path / "нет-такого.log")])
+    captured = capsys.readouterr()
+    assert code == 1 and captured.out == "" and captured.err, (
+        "Отсутствующий журнал: ждём код 1, пустой stdout и сообщение в stderr (s01e12)."
     )

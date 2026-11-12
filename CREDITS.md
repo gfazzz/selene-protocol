@@ -34,7 +34,7 @@ AGI», 8 октября 2025: вместо ферм из тысяч дороги
 | [OPERATION MOONLIGHT](https://github.com/gfazzz/moonlight-course) | язык C, 80 серий | [ideas/971](https://eurecable.com/ideas/971) | MIT |
 | [KERNEL SHADOWS](https://github.com/gfazzz/kernel-shadows) | Linux, 101 серия | — | GPL v3 |
 | CRIMSON RAILS | Ruby и Rails 8 | [ideas/972](https://eurecable.com/ideas/972) | заготовка |
-| **SELENE PROTOCOL** | Python | [ideas/987](https://eurecable.com/ideas/987), [ideas/979](https://eurecable.com/ideas/979) | заготовка |
+| **SELENE PROTOCOL** | Python, 174 серии; написан Season 1 | [ideas/987](https://eurecable.com/ideas/987), [ideas/979](https://eurecable.com/ideas/979) | MIT |
 
 От MOONLIGHT унаследован стандарт серии и отказ от типов серий (почему —
 [SPEC.md](SPEC.md) §1). Общей вселенной с предыдущими курсами у SELENE нет:
@@ -118,7 +118,7 @@ MOONLIGHT и KERNEL SHADOWS происходят в одни сутки и св�
 
 **GitHub:** [@gfazzz](https://github.com/gfazzz)
 
-Лицензия — предполагается MIT, как в MOONLIGHT; фиксируется при первой
+Лицензия — MIT, как в MOONLIGHT ([LICENSE](LICENSE)). Зафиксирована при первой
 публикации кода.
 
 ---

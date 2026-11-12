@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Проверяет маршрут: 120 серий без повторов, оси и зависимости (SPEC.md §1)."""
+"""Проверяет маршрут: серии без повторов, оси и зависимости (SPEC.md §1)."""
 
 import re
 import sys
@@ -17,10 +17,17 @@ ARTIFACTS = {
 def main():
     series = read_series()
     errors = []
-    expected = [f"s{s:02}e{e:02}" for s in range(1, 16) for e in range(1, 9)]
     ids = [row["id"] for row in series]
+    text = ROUTE.read_text(encoding="utf-8")
+    declared = {
+        int(m.group(1)): int(m.group(2))
+        for m in re.finditer(r"^\| S(\d+) \|(?:[^|]*\|){3} (\d+) \|", text, re.M)
+    }
+    expected = [f"s{s:02}e{e:02}" for s in sorted(declared) for e in range(1, declared[s] + 1)]
+    if sorted(declared) != list(range(1, 16)):
+        errors.append("в таблице сезонов не пятнадцать сезонов с числом серий")
     if ids != expected:
-        errors.append("номера серий идут не по порядку или их не 120")
+        errors.append("номера серий идут не по порядку или расходятся с таблицей сезонов")
 
     for column in ("title", "concept", "artifact"):
         for value, count in Counter(row[column] for row in series).items():
@@ -36,10 +43,9 @@ def main():
     for season, counts in sorted(axes.items()):
         if len(counts) < 3:
             errors.append(f"S{season}: меньше трёх осей")
-        if max(counts.values()) > 4:
-            errors.append(f"S{season}: одна ось больше чем в четырёх сериях")
+        if max(counts.values()) * 2 > sum(counts.values()):
+            errors.append(f"S{season}: одна ось больше чем в половине серий")
 
-    text = ROUTE.read_text(encoding="utf-8")
     deps = text[text.index("## Зависимости"):text.index("## Что считается")]
     for line in deps.splitlines():
         cells = line.split("|")
@@ -51,7 +57,10 @@ def main():
 
     for error in errors:
         print(error)
-    print("Маршрут: всё сходится" if not errors else f"Маршрут: ошибок {len(errors)}")
+    if not errors:
+        print(f"Маршрут: всё сходится, серий {len(series)}")
+    else:
+        print(f"Маршрут: ошибок {len(errors)}")
     return 1 if errors else 0
 
 
